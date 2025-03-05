@@ -1,87 +1,19 @@
 #!/bin/bash
 
-# Funzione per mostrare il logo
-show_logo() {
-    clear
-    echo "__________________________________$$$"
-    echo "_______________________________$$$$$"
-    echo "____________________________$$$$$$"
-    echo "__________________________$$$$$$$"
-    echo "________________________$$$$$$$_$$$$$$$$$$$"
-    echo "______________________$$$$$$$$$$$$$$$$$$"
-    echo "____________________$$$$$$$$$$$$$$$"
-    echo "___________________$$$$$$$$$$$$$"
-    echo "_________________$$$$$$$$$$$$"
-    echo "________________$$$$$$$$$$"
-    echo "_______________$$$$$$$$$"
-    echo "______________$$$$$$$$"
-    echo "_____________$$$$$$$$"
-    echo "____________$$$$$$$"
-    echo "___________$$$$$$$"
-    echo "___________$$$$$$"
-    echo "__________$$$$$$"
-    echo "__________$$$$$"
-    echo "_________$$$$$"
-    echo "_________$$$$"
-    echo "________$$$$"
-    echo "________$$$$"
-    echo "________$$$"
-    echo "________$$$_____$$"
-    echo "__$______$$___$$"
-    echo "____$$$$$$$$$$$$"
-    echo "_____$$$$$$$$$$"
-    echo "______$$$$$$$$$"
-    echo "_____$$$$$$$$$$$$"
-    echo "____$$$$$$$$$$$$$$$"
-    echo "____$$$$$$$$$$$____$"
-    echo "__$_____$$$$"
-    echo "_________$$$"
-    echo "__________$"
-    echo ""
-    echo "===================================="
-    echo "        Proiettore Gabriele"
-    echo "===================================="
-    echo ""
-}
+# File di log
+LOG_FILE="/home/pi/install_log.txt"
 
-# Funzione per chiedere l'aggiornamento e rinominare i file esistenti
-ask_for_update() {
-    echo "Vuoi aggiornare i file esistenti? (y/n)"
-    read -r update_choice
-    if [ "$update_choice" == "y" ]; then
-        echo "Aggiornamento in corso..."
-        
-        # Rinomina i file esistenti con estensione .old
-        if [ -f /bin/device_added.sh ]; then
-            sudo mv /bin/device_added.sh /bin/device_added.sh.old
-        fi
-        if [ -f /bin/device_removed.sh ]; then
-            sudo mv /bin/device_removed.sh /bin/device_removed.sh.old
-        fi
-        if [ -f /home/pi/video_control.py ]; then
-            sudo mv /home/pi/video_control.py /home/pi/video_control.py.old
-        fi
-        if [ -f /etc/systemd/system/video_control.service ]; then
-            sudo mv /etc/systemd/system/video_control.service /etc/systemd/system/video_control.service.old
-        fi
-        if [ -f /etc/udev/rules.d/80-test.rules ]; then
-            sudo mv /etc/udev/rules.d/80-test.rules /etc/udev/rules.d/80-test.rules.old
-        fi
-    fi
-}
+# Fase 1: Verifica se il disco di boot è USB
+echo "È il disco di boot USB? (y/n)"
+read -r boot_usb
+echo "Scelta: $boot_usb" | tee -a $LOG_FILE
 
-# Mostra il logo
-show_logo
-
-# Verifica se è stato già installato
-if [ -f /bin/device_added.sh ]; then
-    echo "I file sono già stati installati. Vuoi aggiornare i file? (y/n)"
-    read -r update_existing
-    if [ "$update_existing" == "y" ]; then
-        ask_for_update
-    fi
+if [ "$boot_usb" == "y" ]; then
+    echo "Disco di boot è USB. Configurazioni specifiche in corso..." | tee -a $LOG_FILE
+    USB_DEVICE="/dev/sdb1"
 else
-    echo "Installazione iniziale in corso..."
+    echo "Disco di boot non è USB. Configurazioni generiche in corso..." | tee -a $LOG_FILE
+    USB_DEVICE="/dev/sda1"
 fi
 
 # Fase 2: Installazione di autofs, mpv e gpiozero
