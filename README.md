@@ -44,8 +44,8 @@ Questo file `systemd` è utilizzato per eseguire lo script `video_control.py` co
 
 1. **Clonare il repository:**
    ```bash
-   git clone https://github.com/tuo-username/repository.git
-   cd repository
+   git clone https://github.com/dedalusjinja/proiettore
+   cd proiettore
    ```
 
 2. **Eseguire lo script di installazione:**
