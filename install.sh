@@ -99,7 +99,17 @@ echo "Ricaricando systemd e avviando il servizio video_control..."
     sudo systemctl start video_control.service
 } &>> $LOG_FILE
 
-# Fase 12: Richiesta di visualizzazione log e riavvio
+# Fase 12: Configurazione della console di avvio
+echo "🔧 Configurazione della console di avvio..."
+sudo sed -i 's/console=tty1/console=tty3/g' /boot/firmware/cmdline.txt
+
+if ! grep -q "console=tty3 loglevel=0 quiet splash vt.global_cursor_default=0" /boot/firmware/cmdline.txt; then
+    sudo sed -i 's/$/ console=tty3 loglevel=0 quiet splash vt.global_cursor_default=0/' /boot/firmware/cmdline.txt
+fi
+
+echo "✅ Configurazione della console completata: tty1 disabilitato, log spostati su tty3."
+
+# Fase 13: Richiesta di visualizzazione log e riavvio
 echo "L'installazione è stata completata con successo!"
 echo "Desideri visualizzare il log prima di riavviare? (y/n)"
 read -r view_log
