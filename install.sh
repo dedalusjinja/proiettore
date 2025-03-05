@@ -3,6 +3,17 @@
 # File di log
 LOG_FILE="/home/pi/install_log.txt"
 
+# Funzione per la barra di avanzamento
+progress_bar() {
+    local progress=$1
+    local total=$2
+    local width=50
+    local filled=$((progress * width / total))
+    local empty=$((width - filled))
+    local bar="["$(printf "%${filled}s" "=")$(printf "%${empty}s" " ")"]"
+    echo -ne "\r$bar $((progress * 100 / total))%"
+}
+
 # Fase 1: Verifica se il disco di boot è USB
 echo "È il disco di boot USB? (y/n)"
 read -r boot_usb
@@ -22,12 +33,14 @@ echo "Installazione di autofs, mpv e gpiozero..."
     sudo apt update
     sudo apt install autofs mpv python3-gpiozero -y
 } &>> $LOG_FILE
+progress_bar 1 10
 
 # Fase 3: Configurazione del file /etc/auto.master
 echo "Configurazione del file /etc/auto.master..."
 {
     echo "/media/pi /etc/auto.usb --timeout=10" | sudo tee -a /etc/auto.master
 } &>> $LOG_FILE
+progress_bar 2 10
 
 # Fase 4: Configurazione del file /etc/auto.usb
 echo "Configurazione del file /etc/auto.usb..."
@@ -38,12 +51,14 @@ echo "Configurazione del file /etc/auto.usb..."
         echo "USB -fstype=auto,defaults,nofail :/dev/sda1" | sudo tee /etc/auto.usb
     fi
 } &>> $LOG_FILE
+progress_bar 3 10
 
 # Fase 5: Riavvio del servizio autofs
 echo "Riavvio del servizio autofs..."
 {
     sudo systemctl restart autofs
 } &>> $LOG_FILE
+progress_bar 4 10
 
 # Fase 6: Copia degli script e del servizio
 echo "Copia degli script e del servizio nelle posizioni corrette..."
@@ -53,6 +68,7 @@ echo "Copia degli script e del servizio nelle posizioni corrette..."
     sudo cp ./video_control.py /home/pi/video_control.py
     sudo cp ./video_control.service /etc/systemd/system/video_control.service
 } &>> $LOG_FILE
+progress_bar 5 10
 
 # Fase 7: Rendi eseguibili gli script
 echo "Rendendo eseguibili gli script device_added.sh e device_removed.sh..."
@@ -60,6 +76,7 @@ echo "Rendendo eseguibili gli script device_added.sh e device_removed.sh..."
     sudo chmod +x /bin/device_added.sh
     sudo chmod +x /bin/device_removed.sh
 } &>> $LOG_FILE
+progress_bar 6 10
 
 # Fase 8: Creazione del file delle regole udev
 echo "Creazione delle regole udev..."
@@ -78,18 +95,21 @@ SUBSYSTEM=="usb", ACTION=="remove", ENV{DEVTYPE}=="usb_device", RUN+="/bin/devic
 EOF'
     fi
 } &>> $LOG_FILE
+progress_bar 7 10
 
 # Fase 9: Ricarica udev
 echo "Ricaricamento delle regole udev..."
 {
     sudo udevadm control --reload
 } &>> $LOG_FILE
+progress_bar 8 10
 
 # Fase 10: Rendi eseguibile lo script video_control.py
 echo "Rendendo eseguibile il video_control.py..."
 {
     sudo chmod +x /home/pi/video_control.py
 } &>> $LOG_FILE
+progress_bar 9 10
 
 # Fase 11: Ricarica systemd, abilita e avvia il servizio
 echo "Ricaricando systemd e avviando il servizio video_control..."
@@ -98,8 +118,20 @@ echo "Ricaricando systemd e avviando il servizio video_control..."
     sudo systemctl enable video_control.service
     sudo systemctl start video_control.service
 } &>> $LOG_FILE
+progress_bar 10 10
 
-# Fase 12: Richiesta di visualizzazione log e riavvio
+# Fase 12: Richiesta di rimuovere la cartella "proiettore"
+echo "Desideri rimuovere la cartella 'proiettore' (se presente)? (y/n)"
+read -r remove_folder
+echo "Scelta: $remove_folder" | tee -a $LOG_FILE
+
+if [ "$remove_folder" == "y" ]; then
+    echo "Rimuovendo la cartella 'proiettore'..." | tee -a $LOG_FILE
+    sudo rm -rf /path/to/proiettore
+    echo "Cartella 'proiettore' rimossa con successo." | tee -a $LOG_FILE
+fi
+
+# Fase 13: Richiesta di visualizzazione log e riavvio
 echo "L'installazione è stata completata con successo!"
 echo "Desideri visualizzare il log prima di riavviare? (y/n)"
 read -r view_log
