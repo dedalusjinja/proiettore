@@ -109,7 +109,21 @@ fi
 
 echo "✅ Configurazione della console completata: tty1 disabilitato, log spostati su tty3."
 
-# Fase 13: Richiesta di visualizzazione log e riavvio
+# Fase 13: Richiesta di cancellazione della cartella di download
+echo "Desideri cancellare la cartella 'proiettore' in cui sono stati scaricati i file? (y/n)"
+read -r delete_folder
+echo "Scelta: $delete_folder" | tee -a $LOG_FILE
+
+if [ "$delete_folder" == "y" ]; then
+    echo "Cancellazione della cartella 'proiettore' in corso..." | tee -a $LOG_FILE
+    rm -rf /home/pi/proiettore 
+    echo "Cartella 'proiettore' cancellata." | tee -a $LOG_FILE
+else
+    echo "La cartella 'proiettore' non è stata cancellata." | tee -a $LOG_FILE
+fi
+
+
+# Fase 14: Richiesta di visualizzazione log e riavvio
 echo "L'installazione è stata completata con successo!"
 echo "Desideri visualizzare il log prima di riavviare? (y/n)"
 read -r view_log
