@@ -1,68 +1,71 @@
 
-# Proiettore Gabriele - Script di Installazione e Configurazione
+# Raspberry Pi Setup and Configuration
 
-Questo script è progettato per automatizzare l'installazione e la configurazione di un sistema per controllare un proiettore tramite un Raspberry Pi, utilizzando dispositivi USB per la gestione dei file di video. Esso include l'installazione di pacchetti necessari, la configurazione di autofs per il montaggio automatico dei dispositivi USB, la gestione dei dispositivi USB tramite regole udev, e il controllo dei video tramite GPIO.
+Questo repository contiene gli script necessari per configurare un Raspberry Pi con supporto per il montaggio automatico dei dispositivi USB, controllo video tramite GPIO, e avvio di un servizio video al boot. Gli script sono progettati per automatizzare l'installazione e la configurazione di vari pacchetti e servizi.
 
-## Funzionalità
+## Struttura dei File
 
-- **Controllo dei Video**: Utilizza Python e mpv per il controllo dei video tramite GPIO.
-- **Gestione Automatica dei Dispositivi USB**: Configura autofs per il montaggio automatico e gestisce l'inserimento e la rimozione dei dispositivi USB.
-- **Servizio Systemd**: Esegue uno script di controllo video all'avvio del sistema tramite un servizio systemd.
-
-## Installazione
-
-### 1. Clonare il Repository
-
-Per ottenere gli script necessari, inizia clonando il repository Git:
-
-```bash
-git clone https://github.com/dedalusjinja/proiettore.git
-```
-
-### 2. Esecuzione dello Script di Installazione
-
-Una volta clonato il repository, naviga nella cartella del progetto ed esegui lo script di installazione:
-
-```bash
-cd /proiettore
-chmod +x install.sh
-./install.sh
-```
-
-Lo script di installazione eseguirà tutte le operazioni necessarie per configurare il sistema, inclusa la verifica della presenza di un disco di boot USB e la configurazione di autofs, udev, e il servizio systemd.
-
-### 3. Funzione di Aggiornamento
-
-Lo script supporta una funzionalità di aggiornamento che verifica se una versione precedente è già stata installata. In caso affermativo, chiederà se si desidera aggiornare. I file già presenti verranno rinominati con l'estensione `.old` prima che vengano copiati i nuovi file.
-
-### 4. Permessi di Esecuzione
-
-Dopo aver clonato il repository o copiato i file, verranno automaticamente assegnati i permessi di esecuzione agli script necessari. Non è necessario eseguire manualmente `chmod +x` per i file clonati o copiati.
-
-## Funzionamento
-
-Lo script configurerà il sistema con le seguenti fasi:
-
+### `install.sh`
+Questo è lo script principale di installazione. Esso:
 1. Verifica se il disco di boot è USB.
-2. Installa pacchetti necessari (autofs, mpv, gpiozero).
-3. Configura il file `/etc/auto.master` per il montaggio automatico dei dispositivi USB.
-4. Configura il file `/etc/auto.usb` con la destinazione corretta in base alla configurazione del disco di boot.
-5. Riavvia il servizio autofs.
-6. Copia gli script e il servizio nelle posizioni corrette.
-7. Rende eseguibili gli script `device_added.sh` e `device_removed.sh`.
-8. Crea le regole udev per gestire l'inserimento e la rimozione dei dispositivi USB.
-9. Ricarica il servizio udev.
-10. Rende eseguibile lo script `video_control.py` e crea un servizio systemd per avviare il controllo dei video all'avvio.
+2. Installa i pacchetti necessari: `autofs`, `mpv`, e `python3-gpiozero`.
+3. Configura il file `/etc/auto.master` per il montaggio dei dispositivi USB.
+4. Configura il file `/etc/auto.usb` per il montaggio automatico dei dispositivi USB.
+5. Copia gli script e il servizio nel sistema.
+6. Rende eseguibili gli script `device_added.sh` e `device_removed.sh`.
+7. Configura le regole `udev` per gestire l'aggiunta e la rimozione dei dispositivi USB.
+8. Ricarica e avvia i servizi necessari, tra cui `video_control.service`.
+9. Configura il sistema per non mostrare il cursore lampeggiante su `tty1` e spostare i log su `tty3`.
 
-### Aggiornamento
+### `device_added.sh`
+Questo script viene eseguito quando un dispositivo USB viene aggiunto. Le sue operazioni includono:
+1. Registrare l'aggiunta del dispositivo in un file di log.
+2. Verificare se i file `uno.mp4` e `due.mp4` sono presenti sul dispositivo USB.
+3. Copiare questi file nella home directory di `pi` e creare un file di stato `copy_complete.txt`.
+4. Cambiare il terminale su `tty2` per visualizzare eventuali log e messaggi.
 
-Se una versione precedente del sistema è già installata, lo script chiederà se si desidera eseguire l'aggiornamento. In tal caso, i file esistenti saranno rinominati con l'estensione `.old` prima di copiare i nuovi file.
+### `device_removed.sh`
+Questo script viene eseguito quando un dispositivo USB viene rimosso. Le sue operazioni includono:
+1. Registrare la rimozione del dispositivo in un file di log.
+2. Ripristinare la visualizzazione su `tty1` e pulire il terminale `tty2`.
 
-## Log di Installazione
+### `video_control.py`
+Questo script Python gestisce il controllo video tramite GPIO. È progettato per:
+1. Gestire l'avvio e il controllo della riproduzione di video (incluso il controllo di `mpv`).
+2. Gestire il lampeggio di un LED in relazione al completamento di un'operazione di copia.
+3. Gestire il riavvio e lo spegnimento del Raspberry Pi tramite pulsanti.
 
-Durante l'esecuzione dello script, tutte le azioni vengono registrate nel file di log `install_log.txt` per una consultazione successiva. Alla fine dell'installazione, lo script chiederà se desideri visualizzare il log.
+### `video_control.service`
+Questo file `systemd` è utilizzato per eseguire lo script `video_control.py` come servizio al boot. La configurazione include:
+1. Avvio del servizio all'avvio del sistema.
+2. Monitoraggio continuo del servizio con riavvio automatico in caso di fallimento.
 
-## Riavvio
+## Come Usare
 
-Una volta completata l'installazione, lo script ti chiederà se desideri riavviare il sistema. Puoi scegliere di riavviare immediatamente o farlo manualmente in un secondo momento.
+1. **Clonare il repository:**
+   ```bash
+   git clone https://github.com/tuo-username/repository.git
+   cd repository
+   ```
 
+2. **Eseguire lo script di installazione:**
+   Prima di eseguire lo script, rendilo eseguibile:
+   ```bash
+   chmod +x install.sh
+   sudo ./install.sh
+   ```
+
+3. **Configurazione e avvio:**
+   Dopo aver completato l'installazione, lo script `install.sh` configurerà tutto il necessario, inclusi il montaggio automatico dei dispositivi USB, la configurazione di GPIO per il controllo video, e l'avvio del servizio `video_control`.
+
+4. **Rendere eseguibili gli script:**
+   Gli script `device_added.sh` e `device_removed.sh` verranno automaticamente resi eseguibili dallo script di installazione. Non è necessaria alcuna operazione manuale.
+
+5. **Riavvio del sistema:**
+   Dopo aver completato l'installazione, puoi riavviare il sistema:
+   ```bash
+   sudo reboot
+   ```
+
+## Licenza
+Questo progetto è sotto licenza MIT. Vedi il file LICENSE per maggiori dettagli.
