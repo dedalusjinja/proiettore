@@ -1,18 +1,85 @@
 #!/bin/bash
 
+# Mostra il logo con la stella cometa e la scritta "Proiettore Gabriele"
+clear
+echo "__________________________________$$$"
+echo "_______________________________$$$$$"
+echo "____________________________$$$$$$"
+echo "__________________________$$$$$$$"
+echo "________________________$$$$$$$_$$$$$$$$$$$"
+echo "______________________$$$$$$$$$$$$$$$$$$"
+echo "____________________$$$$$$$$$$$$$$$"
+echo "___________________$$$$$$$$$$$$$"
+echo "_________________$$$$$$$$$$$$"
+echo "________________$$$$$$$$$$"
+echo "_______________$$$$$$$$$"
+echo "______________$$$$$$$$"
+echo "_____________$$$$$$$$"
+echo "____________$$$$$$$"
+echo "___________$$$$$$$"
+echo "___________$$$$$$"
+echo "__________$$$$$$"
+echo "__________$$$$$"
+echo "_________$$$$$"
+echo "_________$$$$"
+echo "________$$$$"
+echo "________$$$$"
+echo "________$$$"
+echo "________$$$_____$$"
+echo "__$______$$___$$"
+echo "____$$$$$$$$$$$$"
+echo "_____$$$$$$$$$$"
+echo "______$$$$$$$$$"
+echo "_____$$$$$$$$$$$$"
+echo "____$$$$$$$$$$$$$$$"
+echo "____$$$$$$$$$$$____$"
+echo "__$_____$$$$"
+echo "_________$$$"
+echo "__________$"
+echo ""
+echo "===================================="
+echo "        Proiettore Gabriele"
+echo "===================================="
+echo ""
+
+# Pausa per visualizzare il logo
+sleep 2
+
+# Funzione di aggiornamento
+function aggiorna_installazione {
+    echo "Controllo se l'installazione è già presente..."
+
+    # Controlliamo se i file esistono
+    if [ -f "/bin/device_added.sh" ] || [ -f "/bin/device_removed.sh" ] || [ -f "/home/pi/video_control.py" ] || [ -f "/etc/systemd/system/video_control.service" ]; then
+        echo "I file di installazione sono già presenti."
+
+        # Chiediamo all'utente se desidera aggiornare
+        echo "Desideri aggiornare l'installazione? (y/n)"
+        read -r risposta_aggiornamento
+        if [ "$risposta_aggiornamento" == "y" ]; then
+            echo "Rinomino i file esistenti con l'estensione .old..."
+
+            # Rinomina i file esistenti
+            mv /bin/device_added.sh /bin/device_added.sh.old
+            mv /bin/device_removed.sh /bin/device_removed.sh.old
+            mv /home/pi/video_control.py /home/pi/video_control.py.old
+            mv /etc/systemd/system/video_control.service /etc/systemd/system/video_control.service.old
+
+            echo "I file sono stati rinominati e saranno aggiornati con i nuovi file."
+        else
+            echo "Non verranno effettuati aggiornamenti."
+            return
+        fi
+    else
+        echo "Nessuna installazione precedente trovata. Procedo con una nuova installazione..."
+    fi
+}
+
+# Esegui la funzione di aggiornamento all'inizio dello script
+aggiorna_installazione
+
 # File di log
 LOG_FILE="/home/pi/install_log.txt"
-
-# Funzione per la barra di avanzamento
-progress_bar() {
-    local progress=$1
-    local total=$2
-    local width=50
-    local filled=$((progress * width / total))
-    local empty=$((width - filled))
-    local bar="["$(printf "%${filled}s" "=")$(printf "%${empty}s" " ")"]"
-    echo -ne "\r$bar $((progress * 100 / total))%"
-}
 
 # Fase 1: Verifica se il disco di boot è USB
 echo "È il disco di boot USB? (y/n)"
@@ -33,14 +100,12 @@ echo "Installazione di autofs, mpv e gpiozero..."
     sudo apt update
     sudo apt install autofs mpv python3-gpiozero -y
 } &>> $LOG_FILE
-progress_bar 1 10
 
 # Fase 3: Configurazione del file /etc/auto.master
 echo "Configurazione del file /etc/auto.master..."
 {
     echo "/media/pi /etc/auto.usb --timeout=10" | sudo tee -a /etc/auto.master
 } &>> $LOG_FILE
-progress_bar 2 10
 
 # Fase 4: Configurazione del file /etc/auto.usb
 echo "Configurazione del file /etc/auto.usb..."
@@ -51,14 +116,12 @@ echo "Configurazione del file /etc/auto.usb..."
         echo "USB -fstype=auto,defaults,nofail :/dev/sda1" | sudo tee /etc/auto.usb
     fi
 } &>> $LOG_FILE
-progress_bar 3 10
 
 # Fase 5: Riavvio del servizio autofs
 echo "Riavvio del servizio autofs..."
 {
     sudo systemctl restart autofs
 } &>> $LOG_FILE
-progress_bar 4 10
 
 # Fase 6: Copia degli script e del servizio
 echo "Copia degli script e del servizio nelle posizioni corrette..."
@@ -68,7 +131,6 @@ echo "Copia degli script e del servizio nelle posizioni corrette..."
     sudo cp ./video_control.py /home/pi/video_control.py
     sudo cp ./video_control.service /etc/systemd/system/video_control.service
 } &>> $LOG_FILE
-progress_bar 5 10
 
 # Fase 7: Rendi eseguibili gli script
 echo "Rendendo eseguibili gli script device_added.sh e device_removed.sh..."
@@ -76,7 +138,6 @@ echo "Rendendo eseguibili gli script device_added.sh e device_removed.sh..."
     sudo chmod +x /bin/device_added.sh
     sudo chmod +x /bin/device_removed.sh
 } &>> $LOG_FILE
-progress_bar 6 10
 
 # Fase 8: Creazione del file delle regole udev
 echo "Creazione delle regole udev..."
@@ -95,21 +156,18 @@ SUBSYSTEM=="usb", ACTION=="remove", ENV{DEVTYPE}=="usb_device", RUN+="/bin/devic
 EOF'
     fi
 } &>> $LOG_FILE
-progress_bar 7 10
 
 # Fase 9: Ricarica udev
 echo "Ricaricamento delle regole udev..."
 {
     sudo udevadm control --reload
 } &>> $LOG_FILE
-progress_bar 8 10
 
 # Fase 10: Rendi eseguibile lo script video_control.py
 echo "Rendendo eseguibile il video_control.py..."
 {
     sudo chmod +x /home/pi/video_control.py
 } &>> $LOG_FILE
-progress_bar 9 10
 
 # Fase 11: Ricarica systemd, abilita e avvia il servizio
 echo "Ricaricando systemd e avviando il servizio video_control..."
@@ -118,20 +176,8 @@ echo "Ricaricando systemd e avviando il servizio video_control..."
     sudo systemctl enable video_control.service
     sudo systemctl start video_control.service
 } &>> $LOG_FILE
-progress_bar 10 10
 
-# Fase 12: Richiesta di rimuovere la cartella "proiettore"
-echo "Desideri rimuovere la cartella 'proiettore' (se presente)? (y/n)"
-read -r remove_folder
-echo "Scelta: $remove_folder" | tee -a $LOG_FILE
-
-if [ "$remove_folder" == "y" ]; then
-    echo "Rimuovendo la cartella 'proiettore'..." | tee -a $LOG_FILE
-    sudo rm -rf /path/to/proiettore
-    echo "Cartella 'proiettore' rimossa con successo." | tee -a $LOG_FILE
-fi
-
-# Fase 13: Richiesta di visualizzazione log e riavvio
+# Fase 12: Richiesta di visualizzazione log e riavvio
 echo "L'installazione è stata completata con successo!"
 echo "Desideri visualizzare il log prima di riavviare? (y/n)"
 read -r view_log
