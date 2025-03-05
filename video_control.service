@@ -1,0 +1,17 @@
+[Unit]
+Description=Video Player Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/video_control.py
+Restart=always
+RestartSec=10s
+User=pi
+WorkingDirectory=/home/pi
+StandardOutput=journal
+StandardError=journal
+TimeoutSec=30
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
