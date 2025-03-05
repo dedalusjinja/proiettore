@@ -1,12 +1,8 @@
 import os
 import time
 from subprocess import Popen, DEVNULL
-from gpiozero import Button, LED, Device
-from gpiozero.pins.rpigpio import RPiGPIOFactory
-
-
-# Imposta la fabbrica dei pin per gpiozero
-Device.pin_factory = RPiGPIOFactory()
+from gpiozero import Button, LED
+import RPi.GPIO as GPIO  # Importa il modulo per la pulizia GPIO
 
 # Percorsi dei video da riprodurre
 movie1 = "/home/pi/uno.mp4"
@@ -100,5 +96,6 @@ except KeyboardInterrupt:
 
 finally:
     # Pulizia dei pin GPIO alla fine del programma
-    Device.pin_factory.close()
+    GPIO.cleanup()
     log_status("Pulizia GPIO eseguita ✔️")
+
