@@ -87,6 +87,7 @@ try:
         # Se il file di stato esiste (copia completata), lampeggia il LED
         if check_copy_complete():
             blink_led(4)  # Lampeggia per 4 secondi
+            led.on()
             os.remove('/home/pi/copy_complete.txt')  # Rimuove il file di stato
 
         time.sleep(0.1)  # Pausa breve per ridurre il carico sulla CPU
