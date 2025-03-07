@@ -58,7 +58,7 @@ def play_video(movie_path):
     stop_player()  # Ferma il video corrente, se presente
     log_status(f"Riproduzione di {movie_path} in corso 🎥")
     global player
-    player = Popen(["sudo", "-u", "pi", "bash", "-c", f"mpv --fullscreen --quiet --no-config --log-file=/tmp/mpv_log.txt {movie_path}"], stdout=DEVNULL, stderr=DEVNULL)
+    player = Popen(["sudo", "-u", "pi", "bash", "-c", f"mpv --fullscreen --quiet --no-config --log-file=/home/pi/mpv_log.txt {movie_path}"], stdout=DEVNULL, stderr=DEVNULL)
 
 # Impostazione dei pulsanti
 button_video1 = Button(17, bounce_time=0.3)  # Pulsante per video 1
