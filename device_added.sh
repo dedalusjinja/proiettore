@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Pausa di 2 secondi all'inizio dello script
