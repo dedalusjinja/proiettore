@@ -16,26 +16,26 @@ else
     USB_DEVICE="/dev/sda1"
 fi
 
-# Fase 2: Installazione di autofs, mpv e gpiozero
-echo "Installazione di autofs, mpv e gpiozero..."
+# Fase 2: Installazione dei pacchetti necessari
+echo "Installazione di autofs, mpv, gpiozero e pacchetti per il supporto ai filesystem USB..."
 {
     sudo apt update
-    sudo apt install autofs mpv python3-gpiozero -y
+    sudo apt install -y autofs mpv python3-gpiozero exfat-fuse exfat-utils ntfs-3g dosfstools e2fsprogs
 } &>> $LOG_FILE
 
 # Fase 3: Configurazione del file /etc/auto.master
 echo "Configurazione del file /etc/auto.master..."
 {
-    echo "/media/pi /etc/auto.usb --timeout=10" | sudo tee -a /etc/auto.master
+    if ! grep -q "/media/pi /etc/auto.usb --timeout=10" /etc/auto.master; then
+        echo "/media/pi /etc/auto.usb --timeout=10" | sudo tee -a /etc/auto.master
+    fi
 } &>> $LOG_FILE
 
 # Fase 4: Configurazione del file /etc/auto.usb
 echo "Configurazione del file /etc/auto.usb..."
 {
-    if [ "$boot_usb" == "y" ]; then
-        echo "USB -fstype=auto,defaults,nofail :/dev/sdb1" | sudo tee /etc/auto.usb
-    else
-        echo "USB -fstype=auto,defaults,nofail :/dev/sda1" | sudo tee /etc/auto.usb
+    if ! grep -q "USB -fstype=auto,defaults,nofail :$USB_DEVICE" /etc/auto.usb; then
+        echo "USB -fstype=auto,defaults,nofail :$USB_DEVICE" | sudo tee /etc/auto.usb
     fi
 } &>> $LOG_FILE
 
@@ -121,7 +121,6 @@ if [ "$delete_folder" == "y" ]; then
 else
     echo "La cartella 'proiettore' non è stata cancellata." | tee -a $LOG_FILE
 fi
-
 
 # Fase 14: Richiesta di visualizzazione log e riavvio
 echo "L'installazione è stata completata con successo!"
